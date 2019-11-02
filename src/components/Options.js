@@ -41,7 +41,6 @@ const Options = (props) => {
             }
         }
         teachers = teachers.filter((item, index) => teachers.indexOf(item) === index);
-        console.log(teachers);
         return teachers;
     };
 
@@ -58,7 +57,6 @@ const Options = (props) => {
             }
         }
         classRooms = classRooms.filter((item, index) => classRooms.indexOf(item) === index);
-        console.log(classRooms);
         return classRooms;
     };
 

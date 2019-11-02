@@ -1,65 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from "react-redux";
+import { CSVLink } from "react-csv";
 
 const Timetable = (props) => {
     const [lessons, setLessons] = useState([]);
+    const [csvBtnDisabled, setCsvBtnDisabled] = useState(true);
+    const [csvData, setCsvData] = useState([]);
+    const [csvFileName, setCsvFileName] = useState('');
 
     useEffect(() => {
         setLessons(getLessonsForSelectedOption());
     }, [props.selectedOption]);
-
-    // const getAllLessonsForTeacher = () => {
-    //     let lessonsFotTeacher = [];
-    //     const timeTables = [...props.timetables];
-    //     const lesson = {
-    //         day: '',
-    //         hour: '',
-    //         lesson: {}
-    //     }
-    //     let count = 0;
-    //     for (let i = 0; i <= timeTables.length - 1; i++) {
-    //         for (let j = 0; j <= timeTables[i].days.length - 1; j++) {
-    //             for (let k = 0; k <= timeTables[i].days[j].hours.length - 1; k++) {
-    //                 for (let l = 0; l <= timeTables[i].days[j].hours[k].constraints.length - 1; l++) {
-    //                     for (let m = 0; m <= timeTables[i].days[j].hours[k].constraints[l].groupingTeachers.length - 1; m++) {
-    //                         if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
-    //                             lessonsFotTeacher = [...lessonsFotTeacher, {
-    //                                 dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
-    //                                 lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-    //                             }];
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     lessonsFotTeacher = [...getUnique(lessonsFotTeacher, 'dayAndHour')];
-    //     console.log(lessonsFotTeacher);
-    //     return lessonsFotTeacher;
-    // };
-
-    // const getAllLessonsForClassRoom = () => {
-    //     let lessonsFotClassRoom = [];
-    //     const timeTables = [...props.timetables];
-
-    //     for (let i = 0; i <= timeTables.length - 1; i++) {
-    //         for (let j = 0; j <= timeTables[i].days.length - 1; j++) {
-    //             for (let k = 0; k <= timeTables[i].days[j].hours.length - 1; k++) {
-    //                 for (let l = 0; l <= timeTables[i].days[j].hours[k].constraints.length - 1; l++) {
-    //                     if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
-    //                         lessonsFotClassRoom = [...lessonsFotClassRoom, {
-    //                             dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
-    //                             lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-    //                         }]
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     lessonsFotClassRoom = [...getUnique(lessonsFotClassRoom, 'dayAndHour')];
-    //     console.log(lessonsFotClassRoom);
-    //     return lessonsFotClassRoom;
-    // };
 
     const getLessonsForSelectedOption = () => {
         let lessonsFotSelectedOption = [];
@@ -78,7 +29,8 @@ const Timetable = (props) => {
                                     }];
                                 }
                             }
-                        } if (props.type === 'classRooms') {
+                        }
+                        if (props.type === 'classRooms') {
                             if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
                                 lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
                                     dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
@@ -95,9 +47,72 @@ const Timetable = (props) => {
             lesson['day'] = lesson['dayAndHour'].split(' ')[0];
             lesson['hour'] = parseInt(lesson['dayAndHour'].split(' ')[1]);
         })
-        console.log(lessonsFotSelectedOption);
+        if (lessonsFotSelectedOption.length === 0) {
+            setCsvBtnDisabled(true);
+        } else {
+            setCsvBtnDisabled(false);
+        }
+        setCsvData(lessonsToCsv(lessonsFotSelectedOption));
+        setCsvFileName(fileNameFotSelectedOption());
         return lessonsFotSelectedOption;
     };
+
+    const lessonsToCsv = (array) => {
+        const csv = [
+            [
+                'Subject',
+                'Start Date',
+                'Start Time',
+                'End Date',
+                'End Time',
+                'All Day Event',
+                'Description',
+                'Location',
+                'Private'
+            ]
+        ];
+        for (let i = 0; i <= array.length - 1; i++) {
+            const subject = ('שיעור" ' + array[i].lesson.subject + ' עבור כיתות ' + array[i].lesson.classNumber.join(',')).split('"').join(' ');
+            const description = ('נלמד על ידי ' + array[i].lesson.groupingTeachers.join(',') + ' ביום ' + array[i].day).split('"').join(' ');
+            const location = ('בכיתה ' + array[i].lesson.classRoom).split('"').join(' ');
+            let startTime = '';
+            let endTime = '';
+            if(array[i].hour - 1 > 12){
+                startTime = (array[i].hour - 13) + ':00 PM';
+            } else {
+                startTime = (array[i].hour - 1) + ':00 AM';
+            }
+            if(array[i].hour > 12){
+                endTime = (array[i].hour - 12) + ':00 PM';
+            } else {
+                endTime = (array[i].hour) + ':00 AM';
+            }
+            const lesson = [
+                subject,
+                '',
+                startTime,
+                '',
+                endTime,
+                'False',
+                description,
+                location,
+                'False'
+            ];
+            csv.push(lesson);
+        }
+        return csv;
+    }
+
+    const fileNameFotSelectedOption = () => {
+        let fileName = 'לוח-שיעורים-עבור';
+        if (props.type === 'teachers') {
+            fileName += '-המורה-' + props.selectedOption.split(' ').join('-');
+        }
+        if (props.type === 'classRooms') {
+            fileName += '-הכיתה-' + props.selectedOption.split(' ').join('-');
+        }
+        return fileName + '.csv';
+    }
 
     const getUnique = (arr, comp) => {
         const unique = arr
@@ -275,6 +290,14 @@ const Timetable = (props) => {
 
     return (
         <div >
+            <CSVLink data={csvData} filename={csvFileName}>
+                <button
+                    type="button"
+                    className="btn btn-secondary mb-3"
+                    disabled={csvBtnDisabled}>
+                    ייצא לקובץ-CSV
+                </button>
+            </CSVLink>
             {createTimeTableView()}
         </div>
     );
