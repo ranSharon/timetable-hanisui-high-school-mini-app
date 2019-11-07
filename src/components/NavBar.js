@@ -1,40 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { Route, Link } from 'react-router-dom';
-import { connect } from "react-redux";
+// import { connect } from "react-redux";
 import { getTimetables } from '../actions/timetablesActions';
 import ClassRooms from '../pages/ClassRooms';
 import Teachers from '../pages/Teachers';
+import { useDispatch, useSelector } from "react-redux";
 
-const NavBar = (props) => {
+const NavBar = () => {
     const [teachers, setTeachers] = useState('text-secondary nav-link');
-    const [classRooms, setclassRooms] = useState('text-secondary nav-link');
+    const [classRooms, setClassRooms] = useState('text-secondary nav-link');
+    const state = useSelector(state => state);
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        props.getTimetables();
+        console.log('useEffect NavBar');
+        // props.getTimetables();
+        dispatch(getTimetables());
         const path = window.location.pathname.substr(1);
         handleTabClick(path);
-    }, []);
+    },[dispatch]);
 
     const handleTabClick = (tab) => {
         switch (tab) {
             case 'teachers':
                 setTeachers('text-secondary nav-link active');
-                setclassRooms('text-secondary nav-link');
+                setClassRooms('text-secondary nav-link');
                 break;
             case 'classRooms':
                 setTeachers('text-secondary nav-link');
-                setclassRooms('text-secondary nav-link active');
+                setClassRooms('text-secondary nav-link active');
                 break;
             default:
                 setTeachers('text-secondary nav-link');
-                setclassRooms('text-secondary nav-link');
+                setClassRooms('text-secondary nav-link');
                 break;
         }
     }
 
     return (
         <div className="container-fluid">
-            {props.timetables.length === 0 ?
+            {/* {props.timetables.length === 0 ? */}
+            {state.timetablesData.timetables.length === 0 ?
                 (<div className="text-center mt-5">
                     <div className="spinner-border" style={{ "width": "3rem", "height": "3rem" }} role="status">
                         <span className="sr-only">Loading...</span>
@@ -60,9 +66,9 @@ const NavBar = (props) => {
     );
 }
 
+// const mapStateToProps = state => ({
+//     timetables: state.timetablesData.timetables
+// });
 
-const mapStateToProps = state => ({
-    timetables: state.timetablesData.timetables
-});
-
-export default connect(mapStateToProps, { getTimetables })(NavBar);
+// export default connect(mapStateToProps, { getTimetables })(NavBar);
+export default NavBar;

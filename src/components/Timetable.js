@@ -1,118 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import { connect } from "react-redux";
+// import { connect } from "react-redux";
 import { CSVLink } from "react-csv";
+import { useSelector } from "react-redux";
 
 const Timetable = (props) => {
     const [lessons, setLessons] = useState([]);
     const [csvBtnDisabled, setCsvBtnDisabled] = useState(true);
     const [csvData, setCsvData] = useState([]);
     const [csvFileName, setCsvFileName] = useState('');
+    const selectedOption = useSelector(state => state.optionsData.selectedOption);
+    const timetables = useSelector(state => state.timetablesData.timetables);
 
     useEffect(() => {
-        setLessons(getLessonsForSelectedOption());
-    }, [props.selectedOption]);
+        console.log('useEffect Timetable');
 
-    const getLessonsForSelectedOption = () => {
-        let lessonsFotSelectedOption = [];
-        const timeTables = [...props.timetables];
+        const getLessonsForSelectedOption = () => {
+            let lessonsFotSelectedOption = [];
+            // const timeTables = [...props.timetables];
+            const timeTables = [...timetables];
 
-        for (let i = 0; i <= timeTables.length - 1; i++) {
-            for (let j = 0; j <= timeTables[i].days.length - 1; j++) {
-                for (let k = 0; k <= timeTables[i].days[j].hours.length - 1; k++) {
-                    for (let l = 0; l <= timeTables[i].days[j].hours[k].constraints.length - 1; l++) {
-                        if (props.type === 'teachers') {
-                            for (let m = 0; m <= timeTables[i].days[j].hours[k].constraints[l].groupingTeachers.length - 1; m++) {
-                                if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
+            for (let i = 0; i <= timeTables.length - 1; i++) {
+                for (let j = 0; j <= timeTables[i].days.length - 1; j++) {
+                    for (let k = 0; k <= timeTables[i].days[j].hours.length - 1; k++) {
+                        for (let l = 0; l <= timeTables[i].days[j].hours[k].constraints.length - 1; l++) {
+                            if (props.type === 'teachers') {
+                                for (let m = 0; m <= timeTables[i].days[j].hours[k].constraints[l].groupingTeachers.length - 1; m++) {
+                                    // if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
+                                    if (selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
+                                        lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
+                                            dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
+                                            lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
+                                        }];
+                                    }
+                                }
+                            }
+                            if (props.type === 'classRooms') {
+                                // if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
+                                if (selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
                                     lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
                                         dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
                                         lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-                                    }];
+                                    }]
                                 }
-                            }
-                        }
-                        if (props.type === 'classRooms') {
-                            if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
-                                lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
-                                    dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
-                                    lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-                                }]
                             }
                         }
                     }
                 }
             }
-        }
-        lessonsFotSelectedOption = [...getUnique(lessonsFotSelectedOption, 'dayAndHour')];
-        lessonsFotSelectedOption.forEach(lesson => {
-            lesson['day'] = lesson['dayAndHour'].split(' ')[0];
-            lesson['hour'] = parseInt(lesson['dayAndHour'].split(' ')[1]);
-        })
-        if (lessonsFotSelectedOption.length === 0) {
-            setCsvBtnDisabled(true);
-        } else {
-            setCsvBtnDisabled(false);
-        }
-        setCsvData(lessonsToCsv(lessonsFotSelectedOption));
-        setCsvFileName(fileNameFotSelectedOption());
-        return lessonsFotSelectedOption;
-    };
 
-    const lessonsToCsv = (array) => {
-        const csv = [
-            [
-                'Subject',
-                'Start Date',
-                'Start Time',
-                'End Date',
-                'End Time',
-                'All Day Event',
-                'Description',
-                'Location',
-                'Private'
-            ]
-        ];
-        for (let i = 0; i <= array.length - 1; i++) {
-            const subject = ('שיעור" ' + array[i].lesson.subject + ' עבור כיתות ' + array[i].lesson.classNumber.join(',')).split('"').join(' ');
-            const description = ('נלמד על ידי ' + array[i].lesson.groupingTeachers.join(',') + ' ביום ' + array[i].day).split('"').join(' ');
-            const location = ('בכיתה ' + array[i].lesson.classRoom).split('"').join(' ');
-            let startTime = '';
-            let endTime = '';
-            if(array[i].hour - 1 > 12){
-                startTime = (array[i].hour - 13) + ':00 PM';
+            lessonsFotSelectedOption = [...getUnique(lessonsFotSelectedOption, 'dayAndHour')];
+            lessonsFotSelectedOption.forEach(lesson => {
+                lesson['day'] = lesson['dayAndHour'].split(' ')[0];
+                lesson['hour'] = parseInt(lesson['dayAndHour'].split(' ')[1]);
+            })
+            if (lessonsFotSelectedOption.length === 0) {
+                setCsvBtnDisabled(true);
             } else {
-                startTime = (array[i].hour - 1) + ':00 AM';
+                setCsvBtnDisabled(false);
             }
-            if(array[i].hour > 12){
-                endTime = (array[i].hour - 12) + ':00 PM';
-            } else {
-                endTime = (array[i].hour) + ':00 AM';
-            }
-            const lesson = [
-                subject,
-                '',
-                startTime,
-                '',
-                endTime,
-                'False',
-                description,
-                location,
-                'False'
+            setCsvData(lessonsToCsv(lessonsFotSelectedOption));
+            setCsvFileName(fileNameFotSelectedOption());
+            return lessonsFotSelectedOption;
+        };
+
+        const lessonsToCsv = (array) => {
+            const csv = [
+                [
+                    'Subject',
+                    'Start Date',
+                    'Start Time',
+                    'End Date',
+                    'End Time',
+                    'All Day Event',
+                    'Description',
+                    'Location',
+                    'Private'
+                ]
             ];
-            csv.push(lesson);
-        }
-        return csv;
-    }
+            for (let i = 0; i <= array.length - 1; i++) {
+                const subject = ('שיעור" ' + array[i].lesson.subject + ' עבור כיתות ' + array[i].lesson.classNumber.join(',')).split('"').join(' ');
+                const description = ('נלמד על ידי ' + array[i].lesson.groupingTeachers.join(',') + ' ביום ' + array[i].day).split('"').join(' ');
+                const location = ('בכיתה ' + array[i].lesson.classRoom).split('"').join(' ');
+                let startTime = '';
+                let endTime = '';
+                if (array[i].hour - 1 > 12) {
+                    startTime = (array[i].hour - 13) + ':00 PM';
+                } else {
+                    startTime = (array[i].hour - 1) + ':00 AM';
+                }
+                if (array[i].hour > 12) {
+                    endTime = (array[i].hour - 12) + ':00 PM';
+                } else {
+                    endTime = (array[i].hour) + ':00 AM';
+                }
+                const lesson = [
+                    subject,
+                    '',
+                    startTime,
+                    '',
+                    endTime,
+                    'False',
+                    description,
+                    location,
+                    'False'
+                ];
+                csv.push(lesson);
+            }
+            return csv;
+        };
 
-    const fileNameFotSelectedOption = () => {
-        let fileName = 'לוח-שיעורים-עבור';
-        if (props.type === 'teachers') {
-            fileName += '-המורה-' + props.selectedOption.split(' ').join('-');
-        }
-        if (props.type === 'classRooms') {
-            fileName += '-הכיתה-' + props.selectedOption.split(' ').join('-');
-        }
-        return fileName + '.csv';
-    }
+        const fileNameFotSelectedOption = () => {
+            let fileName = 'לוח-שיעורים-עבור';
+            if (props.type === 'teachers') {
+                // if (type === 'teachers') {
+                // fileName += '-המורה-' + props.selectedOption.split(' ').join('-');
+                fileName += '-המורה-' + selectedOption.split(' ').join('-');
+            }
+            if (props.type === 'classRooms') {
+                // if (type === 'classRooms') {
+                // fileName += '-חדר-הלימוד-' + props.selectedOption.split(' ').join('-');
+                fileName += '-חדר-הלימוד-' + selectedOption.split(' ').join('-');
+            }
+            return fileName + '.csv';
+        };
+
+        setLessons(getLessonsForSelectedOption());
+    }, [selectedOption, props.type, timetables]);
 
     const getUnique = (arr, comp) => {
         const unique = arr
@@ -129,34 +142,34 @@ const Timetable = (props) => {
 
     const createTimeTableView = () => {
         return (
-            <div className="row justify-content-center m-0">
+            <div className="row justify-content-center m-0 mb-2">
                 <div className="col col-1 border border-dark text-center" value='שעות'>שעות
                 {createTimeCol()}
                 </div>
                 <div className="col-11 row">
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='ראשון'>ראשון</div>
-                        {createEmptyBoxs('ראשון')}
-                        {createBoxesForDay('ראשון', 0)}
+                        {createEmptyBoxes('ראשון')}
+                        {createBoxesForDay('ראשון')}
                     </div>
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שני'>שני</div>
-                        {createEmptyBoxs('שני')}
+                        {createEmptyBoxes('שני')}
                         {createBoxesForDay('שני', 1)}
                     </div>
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שלישי'>שלישי</div>
-                        {createEmptyBoxs('שלישי')}
-                        {createBoxesForDay('שלישי', 2)}
+                        {createEmptyBoxes('שלישי')}
+                        {createBoxesForDay('שלישי')}
                     </div>
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='רביעי'>רביעי</div>
-                        {createEmptyBoxs('רביעי')}
-                        {createBoxesForDay('רביעי', 3)}
+                        {createEmptyBoxes('רביעי')}
+                        {createBoxesForDay('רביעי')}
                     </div>
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='חמישי'>חמישי</div>
-                        {createEmptyBoxs('חמישי')}
-                        {createBoxesForDay('חמישי', 4)}
+                        {createEmptyBoxes('חמישי')}
+                        {createBoxesForDay('חמישי')}
                     </div>
                     <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שישי'>שישי</div>
-                        {createEmptyBoxs('שישי')}
-                        {createBoxesForDay('שישי', 5)}
+                        {createEmptyBoxes('שישי')}
+                        {createBoxesForDay('שישי')}
                     </div>
                 </div>
             </div>
@@ -174,15 +187,18 @@ const Timetable = (props) => {
         return TimeCol;
     }
 
-    const createEmptyBoxs = (day) => {
-        if (props.timetables.length === 0) {
+    const createEmptyBoxes = (day) => {
+        // if (props.timetables.length === 0) {
+        if (timetables.length === 0) {
             return null;
         }
-        if (objectEmpty(props.timetables[0])) {
+        // if (objectEmpty(props.timetables[0])) {
+        if (objectEmpty(timetables[0])) {
             return null;
         }
         let dayView = {};
-        let days = [...props.timetables[0].days];
+        // let days = [...props.timetables[0].days];
+        let days = [...timetables[0].days];
         for (let i = 0; i <= days.length - 1; i++) {
             if (days[i].day === day) {
                 dayView = { ...days[i] };
@@ -201,12 +217,14 @@ const Timetable = (props) => {
         return emptyBoxes;
     }
 
-    const createBoxesForDay = (day, col) => {
-        if (objectEmpty(props.timetables[0])) {
+    const createBoxesForDay = (day) => {
+        // if (objectEmpty(props.timetables[0])) {
+        if (objectEmpty(timetables[0])) {
             return null;
         }
         let dayView = {};
-        let days = [...props.timetables[0].days];
+        // let days = [...props.timetables[0].days];
+        let days = [...timetables[0].days];
         for (let i = 0; i <= days.length - 1; i++) {
             if (days[i].day === day) {
                 dayView = { ...days[i] };
@@ -222,9 +240,6 @@ const Timetable = (props) => {
         let prevId = '';
         for (let i = 0; i <= dayView.hours.length - 1; i++) {
             let borderBottom = '';
-            if (i === dayView.hours.length - 1) {
-                borderBottom = "border-bottom";
-            }
             let height = 50;
             let borderRadius = '';
             let subject = '';
@@ -243,20 +258,27 @@ const Timetable = (props) => {
                         grouping = isGrouping(lessons[j].lesson.subjectGrouping);
                         classRoom = lessons[j].lesson.classRoom;
                         prevId = lessons[j].lesson._id;
+                        i += parseInt(lessons[j].lesson.hours) - 1;
                     }
                 }
+            }
+            if (i === dayView.hours.length - 1) {
+                borderBottom = "border-bottom";
             }
             hoursBoxes = [...hoursBoxes,
             <div
                 key={i}
-                className={"row text-center border-top border-dark " + borderBottom + " " + borderRadius}
-                style={{ "fontSize": '11px', "height": height + "px", "marginRight": "-15px", "marginLeft": "-15px", "backgroundColor": "white" }}
+                className={"row border-top border-dark " + borderBottom + " " + borderRadius}
+                // style={{ "fontSize": '11px', "height": height + "px", "marginRight": "-15px", "marginLeft": "-15px", "backgroundColor": "white" }}
+                style={{ "fontSize": '11px', "height": height + "px" }}
             >
-                {subject}
-                {teachers}
-                {classes}
-                {grouping}
-                {classRoom}
+                <span className="mx-auto">
+                    {subject}
+                    {teachers}
+                    {classes}
+                    {grouping}
+                    {classRoom}
+                </span>
             </div>
             ];
         }
@@ -303,9 +325,10 @@ const Timetable = (props) => {
     );
 }
 
-const mapStateToProps = state => ({
-    timetables: state.timetablesData.timetables,
-    selectedOption: state.optionsData.selectedOption
-});
+// const mapStateToProps = state => ({
+//     timetables: state.timetablesData.timetables,
+//     selectedOption: state.optionsData.selectedOption
+// });
 
-export default connect(mapStateToProps, null)(Timetable);
+// export default connect(mapStateToProps, null)(Timetable);
+export default Timetable;

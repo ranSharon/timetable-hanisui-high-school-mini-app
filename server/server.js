@@ -1,20 +1,15 @@
-// hanisuidev
-// hlV29C0AmKqVl4rz
-// mongodb+srv://<username>:<password>@cluster0-hdnsl.mongodb.net/test?retryWrites=true&w=majority
-
 const path = require('path');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
-// const keys = require('./config/keys');
+const keys = require('./config/keys');
 const PORT = process.env.PORT || 4000;
 const timeTablesRouter = require('./routes/timeTables');
 
 // database
-mongoose.connect('mongodb+srv://hanisuidev:hlV29C0AmKqVl4rz@cluster0-hdnsl.mongodb.net/test?retryWrites=true&w=majority', { useFindAndModify: false, useNewUrlParser: true, useUnifiedTopology: true });
-// mongoose.connect(keys.mongoURI, {useFindAndModify: false, useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect(keys.mongoURI, {useFindAndModify: false, useNewUrlParser: true, useUnifiedTopology: true});
 const connection = mongoose.connection;
 
 connection.once('open', function () {
