@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-// import { connect } from "react-redux";
-import { CSVLink } from "react-csv";
-import { useSelector } from "react-redux";
+import { CSVLink } from 'react-csv';
+import { useSelector } from 'react-redux';
 
-const Timetable = (props) => {
+const Timetable = props => {
     const [lessons, setLessons] = useState([]);
     const [csvBtnDisabled, setCsvBtnDisabled] = useState(true);
     const [csvData, setCsvData] = useState([]);
     const [csvFileName, setCsvFileName] = useState('');
-    const selectedOption = useSelector(state => state.optionsData.selectedOption);
+    const selectedOption = useSelector(
+        state => state.optionsData.selectedOption
+    );
     const timetables = useSelector(state => state.timetablesData.timetables);
 
     useEffect(() => {
@@ -16,31 +17,78 @@ const Timetable = (props) => {
 
         const getLessonsForSelectedOption = () => {
             let lessonsFotSelectedOption = [];
-            // const timeTables = [...props.timetables];
             const timeTables = [...timetables];
 
             for (let i = 0; i <= timeTables.length - 1; i++) {
                 for (let j = 0; j <= timeTables[i].days.length - 1; j++) {
-                    for (let k = 0; k <= timeTables[i].days[j].hours.length - 1; k++) {
-                        for (let l = 0; l <= timeTables[i].days[j].hours[k].constraints.length - 1; l++) {
+                    for (
+                        let k = 0;
+                        k <= timeTables[i].days[j].hours.length - 1;
+                        k++
+                    ) {
+                        for (
+                            let l = 0;
+                            l <=
+                            timeTables[i].days[j].hours[k].constraints.length -
+                                1;
+                            l++
+                        ) {
                             if (props.type === 'teachers') {
-                                for (let m = 0; m <= timeTables[i].days[j].hours[k].constraints[l].groupingTeachers.length - 1; m++) {
-                                    // if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
-                                    if (selectedOption === timeTables[i].days[j].hours[k].constraints[l].groupingTeachers[m]) {
-                                        lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
-                                            dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
-                                            lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-                                        }];
+                                for (
+                                    let m = 0;
+                                    m <=
+                                    timeTables[i].days[j].hours[k].constraints[
+                                        l
+                                    ].groupingTeachers.length -
+                                        1;
+                                    m++
+                                ) {
+                                    if (
+                                        selectedOption ===
+                                        timeTables[i].days[j].hours[k]
+                                            .constraints[l].groupingTeachers[m]
+                                    ) {
+                                        lessonsFotSelectedOption = [
+                                            ...lessonsFotSelectedOption,
+                                            {
+                                                dayAndHour:
+                                                    timeTables[i].days[j].day +
+                                                    ' ' +
+                                                    timeTables[i].days[j].hours[
+                                                        k
+                                                    ].hour,
+                                                lesson: {
+                                                    ...timeTables[i].days[j]
+                                                        .hours[k].constraints[l]
+                                                }
+                                            }
+                                        ];
                                     }
                                 }
                             }
                             if (props.type === 'classRooms') {
                                 // if (props.selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
-                                if (selectedOption === timeTables[i].days[j].hours[k].constraints[l].classRoom) {
-                                    lessonsFotSelectedOption = [...lessonsFotSelectedOption, {
-                                        dayAndHour: timeTables[i].days[j].day + ' ' + timeTables[i].days[j].hours[k].hour,
-                                        lesson: { ...timeTables[i].days[j].hours[k].constraints[l] }
-                                    }]
+                                if (
+                                    selectedOption ===
+                                    timeTables[i].days[j].hours[k].constraints[
+                                        l
+                                    ].classRoom
+                                ) {
+                                    lessonsFotSelectedOption = [
+                                        ...lessonsFotSelectedOption,
+                                        {
+                                            dayAndHour:
+                                                timeTables[i].days[j].day +
+                                                ' ' +
+                                                timeTables[i].days[j].hours[k]
+                                                    .hour,
+                                            lesson: {
+                                                ...timeTables[i].days[j].hours[
+                                                    k
+                                                ].constraints[l]
+                                            }
+                                        }
+                                    ];
                                 }
                             }
                         }
@@ -48,11 +96,13 @@ const Timetable = (props) => {
                 }
             }
 
-            lessonsFotSelectedOption = [...getUnique(lessonsFotSelectedOption, 'dayAndHour')];
+            lessonsFotSelectedOption = [
+                ...getUnique(lessonsFotSelectedOption, 'dayAndHour')
+            ];
             lessonsFotSelectedOption.forEach(lesson => {
                 lesson['day'] = lesson['dayAndHour'].split(' ')[0];
                 lesson['hour'] = parseInt(lesson['dayAndHour'].split(' ')[1]);
-            })
+            });
             if (lessonsFotSelectedOption.length === 0) {
                 setCsvBtnDisabled(true);
             } else {
@@ -63,7 +113,7 @@ const Timetable = (props) => {
             return lessonsFotSelectedOption;
         };
 
-        const lessonsToCsv = (array) => {
+        const lessonsToCsv = array => {
             const csv = [
                 [
                     'Subject',
@@ -78,20 +128,36 @@ const Timetable = (props) => {
                 ]
             ];
             for (let i = 0; i <= array.length - 1; i++) {
-                const subject = ('שיעור" ' + array[i].lesson.subject + ' עבור כיתות ' + array[i].lesson.classNumber.join(',')).split('"').join(' ');
-                const description = ('נלמד על ידי ' + array[i].lesson.groupingTeachers.join(',') + ' ביום ' + array[i].day).split('"').join(' ');
-                const location = ('בכיתה ' + array[i].lesson.classRoom).split('"').join(' ');
+                const subject = (
+                    'שיעור" ' +
+                    array[i].lesson.subject +
+                    ' עבור כיתות ' +
+                    array[i].lesson.classNumber.join(',')
+                )
+                    .split('"')
+                    .join(' ');
+                const description = (
+                    'נלמד על ידי ' +
+                    array[i].lesson.groupingTeachers.join(',') +
+                    ' ביום ' +
+                    array[i].day
+                )
+                    .split('"')
+                    .join(' ');
+                const location = ('בכיתה ' + array[i].lesson.classRoom)
+                    .split('"')
+                    .join(' ');
                 let startTime = '';
                 let endTime = '';
                 if (array[i].hour - 1 > 12) {
-                    startTime = (array[i].hour - 13) + ':00 PM';
+                    startTime = array[i].hour - 13 + ':00 PM';
                 } else {
-                    startTime = (array[i].hour - 1) + ':00 AM';
+                    startTime = array[i].hour - 1 + ':00 AM';
                 }
                 if (array[i].hour > 12) {
-                    endTime = (array[i].hour - 12) + ':00 PM';
+                    endTime = array[i].hour - 12 + ':00 PM';
                 } else {
-                    endTime = (array[i].hour) + ':00 AM';
+                    endTime = array[i].hour + ':00 AM';
                 }
                 const lesson = [
                     subject,
@@ -112,14 +178,11 @@ const Timetable = (props) => {
         const fileNameFotSelectedOption = () => {
             let fileName = 'לוח-שיעורים-עבור';
             if (props.type === 'teachers') {
-                // if (type === 'teachers') {
-                // fileName += '-המורה-' + props.selectedOption.split(' ').join('-');
                 fileName += '-המורה-' + selectedOption.split(' ').join('-');
             }
             if (props.type === 'classRooms') {
-                // if (type === 'classRooms') {
-                // fileName += '-חדר-הלימוד-' + props.selectedOption.split(' ').join('-');
-                fileName += '-חדר-הלימוד-' + selectedOption.split(' ').join('-');
+                fileName +=
+                    '-חדר-הלימוד-' + selectedOption.split(' ').join('-');
             }
             return fileName + '.csv';
         };
@@ -135,69 +198,138 @@ const Timetable = (props) => {
             .map((e, i, final) => final.indexOf(e) === i && i)
 
             // eliminate the dead keys & store unique objects
-            .filter(e => arr[e]).map(e => arr[e]);
+            .filter(e => arr[e])
+            .map(e => arr[e]);
 
         return unique;
-    }
+    };
 
     const createTimeTableView = () => {
         return (
             <div className="row justify-content-center m-0 mb-2">
-                <div className="col col-1 border border-dark text-center" value='שעות'>שעות
-                {createTimeCol()}
+                <div
+                    className="col col-1 border border-dark text-center"
+                    value="שעות"
+                >
+                    שעות
+                    {createTimeCol()}
                 </div>
                 <div className="col-11 row">
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='ראשון'>ראשון</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="ראשון"
+                        >
+                            ראשון
+                        </div>
                         {createEmptyBoxes('ראשון')}
                         {createBoxesForDay('ראשון')}
                     </div>
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שני'>שני</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="שני"
+                        >
+                            שני
+                        </div>
                         {createEmptyBoxes('שני')}
-                        {createBoxesForDay('שני', 1)}
+                        {createBoxesForDay('שני')}
                     </div>
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שלישי'>שלישי</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="שלישי"
+                        >
+                            שלישי
+                        </div>
                         {createEmptyBoxes('שלישי')}
                         {createBoxesForDay('שלישי')}
                     </div>
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='רביעי'>רביעי</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="רביעי"
+                        >
+                            רביעי
+                        </div>
                         {createEmptyBoxes('רביעי')}
                         {createBoxesForDay('רביעי')}
                     </div>
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='חמישי'>חמישי</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="חמישי"
+                        >
+                            חמישי
+                        </div>
                         {createEmptyBoxes('חמישי')}
                         {createBoxesForDay('חמישי')}
                     </div>
-                    <div className="col-2 border border-dark text-center" ><div className="border-bottom border-dark" style={{ "marginRight": "-15px", "marginLeft": "-15px" }} value='שישי'>שישי</div>
+                    <div className="col-2 border border-dark text-center">
+                        <div
+                            className="border-bottom border-dark"
+                            style={{
+                                marginRight: '-15px',
+                                marginLeft: '-15px'
+                            }}
+                            value="שישי"
+                        >
+                            שישי
+                        </div>
                         {createEmptyBoxes('שישי')}
                         {createBoxesForDay('שישי')}
                     </div>
                 </div>
             </div>
         );
-    }
+    };
 
     const createTimeCol = () => {
         let TimeCol = [];
         for (let i = 7; i < 20; i++) {
             let time = i + ':00-' + (i + 1) + ':00';
-            TimeCol = [...TimeCol,
-            <div key={i} className="row border-top border-dark text-center" style={{ "height": "50px" }}>{time}</div>
+            TimeCol = [
+                ...TimeCol,
+                <div
+                    key={i}
+                    className="row border-top border-dark text-center"
+                    style={{ height: '50px' }}
+                >
+                    {time}
+                </div>
             ];
         }
         return TimeCol;
-    }
+    };
 
-    const createEmptyBoxes = (day) => {
-        // if (props.timetables.length === 0) {
+    const createEmptyBoxes = day => {
         if (timetables.length === 0) {
             return null;
         }
-        // if (objectEmpty(props.timetables[0])) {
         if (objectEmpty(timetables[0])) {
             return null;
         }
         let dayView = {};
-        // let days = [...props.timetables[0].days];
         let days = [...timetables[0].days];
         for (let i = 0; i <= days.length - 1; i++) {
             if (days[i].day === day) {
@@ -211,19 +343,20 @@ const Timetable = (props) => {
 
         let emptyBoxes = [];
         for (let j = 8; j < dayView.hours[0].hour; j++) {
-            emptyBoxes = [...emptyBoxes, <div key={j} style={{ "height": "50px", "width": "162px" }}></div>];
+            emptyBoxes = [
+                ...emptyBoxes,
+                <div key={j} style={{ height: '50px', width: '162px' }}></div>
+            ];
         }
 
         return emptyBoxes;
-    }
+    };
 
-    const createBoxesForDay = (day) => {
-        // if (objectEmpty(props.timetables[0])) {
+    const createBoxesForDay = day => {
         if (objectEmpty(timetables[0])) {
             return null;
         }
         let dayView = {};
-        // let days = [...props.timetables[0].days];
         let days = [...timetables[0].days];
         for (let i = 0; i <= days.length - 1; i++) {
             if (days[i].day === day) {
@@ -248,14 +381,22 @@ const Timetable = (props) => {
             let grouping = '';
             let classRoom = '';
             for (let j = 0; j <= lessons.length - 1; j++) {
-                if (day === lessons[j].day && dayView.hours[i].hour === lessons[j].hour) {
+                if (
+                    day === lessons[j].day &&
+                    dayView.hours[i].hour === lessons[j].hour
+                ) {
                     if (prevId !== lessons[j].lesson._id) {
                         height = height * parseInt(lessons[j].lesson.hours);
                         borderRadius = 'rounded';
                         subject = lessons[j].lesson.subject + ', ';
-                        teachers = arrayToText(lessons[j].lesson.groupingTeachers) + ', ';
-                        classes = arrayToText(lessons[j].lesson.classNumber) + ', ';
-                        grouping = isGrouping(lessons[j].lesson.subjectGrouping);
+                        teachers = arrayToText(
+                            lessons[j].lesson.groupingTeachers
+                        );
+                        classes =
+                            arrayToText(lessons[j].lesson.classNumber) + ', ';
+                        grouping = isGrouping(
+                            lessons[j].lesson.subjectGrouping
+                        );
                         classRoom = lessons[j].lesson.classRoom;
                         prevId = lessons[j].lesson._id;
                         i += parseInt(lessons[j].lesson.hours) - 1;
@@ -263,38 +404,46 @@ const Timetable = (props) => {
                 }
             }
             if (i === dayView.hours.length - 1) {
-                borderBottom = "border-bottom";
+                borderBottom = 'border-bottom';
             }
-            hoursBoxes = [...hoursBoxes,
-            <div
-                key={i}
-                className={"row border-top border-dark " + borderBottom + " " + borderRadius}
-                // style={{ "fontSize": '11px', "height": height + "px", "marginRight": "-15px", "marginLeft": "-15px", "backgroundColor": "white" }}
-                style={{ "fontSize": '11px', "height": height + "px" }}
-            >
-                <span className="mx-auto">
-                    {subject}
-                    {teachers}
-                    {classes}
-                    {grouping}
-                    {classRoom}
-                </span>
-            </div>
+
+            const numOfLesson = parseInt(dayView.hours[i].hour);
+            const fontSize = numOfLesson > 1 ? '12px' : '10px';
+            hoursBoxes = [
+                ...hoursBoxes,
+                <div
+                    key={i}
+                    className={
+                        'row border-top border-dark ' +
+                        borderBottom +
+                        ' ' +
+                        borderRadius
+                    }
+                    style={{ fontSize: fontSize, height: height + 'px' }}
+                >
+                    <p className="m-auto card-text">
+                        <span className="font-weight-bold">{subject}</span>
+                        <span className="font-italic">{teachers}</span>
+                        <br />
+                        {classes}
+                        {grouping}
+                        {classRoom}
+                    </p>
+                </div>
             ];
         }
 
         return hoursBoxes;
-    }
+    };
 
-    const objectEmpty = (obj) => {
+    const objectEmpty = obj => {
         for (let key in obj) {
-            if (obj.hasOwnProperty(key))
-                return false;
+            if (obj.hasOwnProperty(key)) return false;
         }
         return true;
-    }
+    };
 
-    const arrayToText = (array) => {
+    const arrayToText = array => {
         let text = ``;
         array.forEach(element => {
             text = `${text} ${element},`;
@@ -302,33 +451,28 @@ const Timetable = (props) => {
         return text.substr(0, text.length - 1);
     };
 
-    const isGrouping = (bool) => {
+    const isGrouping = bool => {
         let text = ``;
         if (bool) {
-            text = `הקבצות ,`
+            text = `הקבצות ,`;
         }
         return text;
-    }
+    };
 
     return (
-        <div >
+        <div>
             <CSVLink data={csvData} filename={csvFileName}>
                 <button
                     type="button"
                     className="btn btn-secondary mb-3"
-                    disabled={csvBtnDisabled}>
+                    disabled={csvBtnDisabled}
+                >
                     ייצא לקובץ-CSV
                 </button>
             </CSVLink>
             {createTimeTableView()}
         </div>
     );
-}
+};
 
-// const mapStateToProps = state => ({
-//     timetables: state.timetablesData.timetables,
-//     selectedOption: state.optionsData.selectedOption
-// });
-
-// export default connect(mapStateToProps, null)(Timetable);
 export default Timetable;
